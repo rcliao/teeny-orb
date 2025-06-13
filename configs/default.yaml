@@ -1,0 +1,23 @@
+# Default configuration for teeny-orb
+container:
+  image: "alpine:latest"
+  work_dir: "/workspace"
+  limits:
+    cpu_shares: 512
+    memory: 536870912  # 512MB in bytes
+
+# LLM configuration (will be implemented in Phase 2)
+llm:
+  provider: "openai"
+  model: "gpt-4"
+  max_tokens: 4096
+
+# MCP configuration (will be implemented in Phase 3)
+mcp:
+  enabled: true
+  port: 8080
+
+# Session configuration
+session:
+  cleanup_timeout: "5m"
+  max_sessions: 10

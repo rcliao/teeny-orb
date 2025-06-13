@@ -1,0 +1,53 @@
+# Development container with additional tools and languages
+FROM alpine:latest
+
+# Install development tools and language runtimes
+RUN apk add --no-cache \
+    bash \
+    git \
+    curl \
+    wget \
+    vim \
+    nano \
+    tmux \
+    htop \
+    build-base \
+    python3 \
+    py3-pip \
+    nodejs \
+    npm \
+    go \
+    rust \
+    cargo \
+    docker \
+    docker-compose
+
+# Install additional Python packages
+RUN pip3 install --no-cache-dir \
+    requests \
+    flask \
+    fastapi \
+    pytest
+
+# Install global npm packages
+RUN npm install -g \
+    typescript \
+    ts-node \
+    @types/node \
+    nodemon
+
+# Create workspace directory
+RUN mkdir -p /workspace
+WORKDIR /workspace
+
+# Add a non-root user for security
+RUN adduser -D -s /bin/bash -G docker workspace
+USER workspace
+
+# Set environment variables
+ENV TERM=xterm-256color
+ENV EDITOR=vim
+ENV PATH="/home/workspace/.local/bin:${PATH}"
+
+# Keep container running
+CMD ["tail", "-f", "/dev/null"]
