@@ -21,7 +21,7 @@ func NewDockerManager() (Manager, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Docker client: %w", err)
 	}
-	
+
 	return &dockerManager{
 		client:   cli,
 		sessions: make(map[string]Session),

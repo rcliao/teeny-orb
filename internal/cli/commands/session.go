@@ -4,15 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/spf13/cobra"
 	"github.com/rcliao/teeny-orb/internal/container"
+	"github.com/spf13/cobra"
 )
 
 func NewSessionCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "session",
-		Short: "Manage container sessions",
-		Long:  "Create and manage isolated container sessions for coding.",
+		Short: "Manage sessions",
+		Long:  "Create and manage sessions for coding (host-based by default, containerized with --docker).",
 	}
 
 	cmd.AddCommand(newSessionCreateCmd())
@@ -23,25 +23,42 @@ func NewSessionCmd() *cobra.Command {
 }
 
 func newSessionCreateCmd() *cobra.Command {
-	return &cobra.Command{
+	var useDocker bool
+	var workDir string
+	var image string
+
+	cmd := &cobra.Command{
 		Use:   "create",
-		Short: "Create a new container session",
+		Short: "Create a new session",
+		Long:  "Create a new session for coding (runs on host by default, use --docker for containerized execution)",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			manager, err := container.NewDockerManager()
-			if err != nil {
-				return fmt.Errorf("failed to create container manager: %w", err)
+			registry := container.GetRegistry()
+			var manager container.Manager
+			var err error
+
+			if useDocker {
+				manager, err = registry.GetDockerManager()
+				if err != nil {
+					return fmt.Errorf("failed to get Docker manager: %w", err)
+				}
+			} else {
+				manager = registry.GetHostManager()
 			}
 
 			config := container.SessionConfig{
-				Image:   "alpine:latest",
-				WorkDir: "/workspace",
+				WorkDir: workDir,
 				Environment: map[string]string{
 					"TERM": "xterm-256color",
 				},
-				Limits: container.ResourceLimits{
+			}
+
+			// Docker-specific configuration
+			if useDocker {
+				config.Image = image
+				config.Limits = container.ResourceLimits{
 					CPUShares: 512,
 					Memory:    536870912, // 512MB
-				},
+				}
 			}
 
 			session, err := manager.CreateSession(context.Background(), config)
@@ -49,11 +66,25 @@ func newSessionCreateCmd() *cobra.Command {
 				return fmt.Errorf("failed to create session: %w", err)
 			}
 
-			fmt.Printf("Created session: %s\n", session.ID())
+			sessionType := "host"
+			if useDocker {
+				sessionType = "container"
+			}
+
+			fmt.Printf("Created %s session: %s\n", sessionType, session.ID())
 			fmt.Printf("Status: %s\n", session.Status())
+			if !useDocker && workDir != "" {
+				fmt.Printf("Working directory: %s\n", workDir)
+			}
 			return nil
 		},
 	}
+
+	cmd.Flags().BoolVar(&useDocker, "docker", false, "Use Docker containers for session isolation")
+	cmd.Flags().StringVar(&workDir, "workdir", "", "Working directory for the session (defaults to current directory for host sessions)")
+	cmd.Flags().StringVar(&image, "image", "alpine:latest", "Docker image to use (only applies when --docker is set)")
+
+	return cmd
 }
 
 func newSessionListCmd() *cobra.Command {
@@ -61,12 +92,9 @@ func newSessionListCmd() *cobra.Command {
 		Use:   "list",
 		Short: "List active sessions",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			manager, err := container.NewDockerManager()
-			if err != nil {
-				return fmt.Errorf("failed to create container manager: %w", err)
-			}
+			registry := container.GetRegistry()
+			sessions := registry.GetAllSessions()
 
-			sessions := manager.ListSessions()
 			if len(sessions) == 0 {
 				fmt.Println("No active sessions")
 				return nil
@@ -89,12 +117,8 @@ func newSessionStopCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			sessionID := args[0]
 
-			manager, err := container.NewDockerManager()
-			if err != nil {
-				return fmt.Errorf("failed to create container manager: %w", err)
-			}
-
-			session, err := manager.GetSession(sessionID)
+			registry := container.GetRegistry()
+			session, err := registry.GetSession(sessionID)
 			if err != nil {
 				return fmt.Errorf("session not found: %w", err)
 			}

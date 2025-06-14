@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/rcliao/teeny-orb/internal/cli/commands"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/rcliao/teeny-orb/internal/cli/commands"
 )
 
 var cfgFile string

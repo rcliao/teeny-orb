@@ -2,6 +2,7 @@ package container
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"time"
 )
@@ -25,16 +26,16 @@ type ResourceLimits struct {
 type Session interface {
 	// ID returns the unique session identifier
 	ID() string
-	
+
 	// Status returns the current session status
 	Status() SessionStatus
-	
+
 	// Execute runs a command in the session container
 	Execute(ctx context.Context, cmd []string) (*ExecResult, error)
-	
+
 	// SyncFiles synchronizes files between host and container
 	SyncFiles(ctx context.Context, direction SyncDirection) error
-	
+
 	// Close terminates the session and cleans up resources
 	Close() error
 }
@@ -43,13 +44,13 @@ type Session interface {
 type Manager interface {
 	// CreateSession creates a new container session
 	CreateSession(ctx context.Context, config SessionConfig) (Session, error)
-	
+
 	// GetSession retrieves an existing session by ID
 	GetSession(id string) (Session, error)
-	
+
 	// ListSessions returns all active sessions
 	ListSessions() []Session
-	
+
 	// Cleanup removes orphaned containers and resources
 	Cleanup(ctx context.Context) error
 }
@@ -79,4 +80,15 @@ type ExecResult struct {
 	Stdout   io.Reader
 	Stderr   io.Reader
 	Duration time.Duration
+}
+
+// Validate validates the session configuration
+func (c SessionConfig) Validate() error {
+	if c.Image == "" {
+		return fmt.Errorf("image cannot be empty")
+	}
+	if c.WorkDir == "" {
+		return fmt.Errorf("working directory cannot be empty")
+	}
+	return nil
 }

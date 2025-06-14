@@ -16,9 +16,9 @@ import (
 
 // FileSyncer handles bidirectional file synchronization between host and container
 type FileSyncer struct {
-	client      *client.Client
-	containerID string
-	hostPath    string
+	client        *client.Client
+	containerID   string
+	hostPath      string
 	containerPath string
 }
 
@@ -40,7 +40,7 @@ func (fs *FileSyncer) SyncToContainer(ctx context.Context) error {
 		return fmt.Errorf("failed to create tar from host: %w", err)
 	}
 
-	// Copy tar to container  
+	// Copy tar to container
 	err = fs.client.CopyToContainer(ctx, fs.containerID, fs.containerPath, tarBuffer, container.CopyToContainerOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to copy to container: %w", err)
