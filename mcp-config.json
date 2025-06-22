@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "teeny-orb": {
+      "command": "./teeny-orb-mcp-server",
+      "args": ["--debug"],
+      "env": {}
+    }
+  }
+}
