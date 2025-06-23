@@ -1,7 +1,7 @@
 # Lab Report: MCP Security Model Validation
 
-**Week**: 4  
-**Date**: 2025-06-22  
+**Week**: 4
+**Date**: 2025-06-22
 **Status**: Complete
 
 ## Hypothesis

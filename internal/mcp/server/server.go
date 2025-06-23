@@ -40,15 +40,22 @@ func (s *Server) Initialize(ctx context.Context, req *mcp.InitializeRequest) (*m
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	// Validate protocol version
-	if req.ProtocolVersion != mcp.MCPVersion {
-		return nil, fmt.Errorf("unsupported protocol version: %s", req.ProtocolVersion)
+	// Accept any reasonable protocol version for maximum compatibility
+	// Log for debugging but don't reject
+	if req.ProtocolVersion != "" {
+		fmt.Printf("DEBUG: Client requested protocol version: %s\n", req.ProtocolVersion)
 	}
 
 	s.initialized = true
 
+	// Respond with the client's requested version if supported, otherwise use our default
+	responseVersion := req.ProtocolVersion
+	if responseVersion == "" {
+		responseVersion = mcp.MCPVersion
+	}
+
 	return &mcp.InitializeResponse{
-		ProtocolVersion: mcp.MCPVersion,
+		ProtocolVersion: responseVersion,
 		Capabilities:    s.capabilities,
 		ServerInfo:      s.info,
 	}, nil

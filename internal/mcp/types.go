@@ -8,6 +8,12 @@ import (
 // MCPVersion represents the MCP protocol version
 const MCPVersion = "2024-11-05"
 
+// Supported MCP protocol versions for compatibility
+var SupportedMCPVersions = []string{
+	"2024-11-05",
+	"2025-03-26",
+}
+
 // Message represents a generic MCP message
 type Message struct {
 	JSONRPC string          `json:"jsonrpc"`
