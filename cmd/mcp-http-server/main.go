@@ -78,10 +78,14 @@ func main() {
 
 // registerTools registers all available tools with the server
 func registerTools(server *server.Server, debug bool) error {
-	// Get current working directory as base
-	workDir, err := os.Getwd()
-	if err != nil {
-		workDir = "."
+	// Get working directory - check environment variable first, then current directory
+	workDir := os.Getenv("WORKSPACE_PATH")
+	if workDir == "" {
+		var err error
+		workDir, err = os.Getwd()
+		if err != nil {
+			workDir = "."
+		}
 	}
 
 	if debug {

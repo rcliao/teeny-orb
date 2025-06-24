@@ -72,10 +72,14 @@ func main() {
 
 // registerTools registers all available tools with the server
 func registerTools(server *server.Server) error {
-	// Get current working directory as base
-	workDir, err := os.Getwd()
-	if err != nil {
-		workDir = "."
+	// Get working directory - check environment variable first, then current directory
+	workDir := os.Getenv("WORKSPACE_PATH")
+	if workDir == "" {
+		var err error
+		workDir, err = os.Getwd()
+		if err != nil {
+			workDir = "."
+		}
 	}
 
 	// Create security policy - permissive for demo but with some restrictions
@@ -162,6 +166,20 @@ func runServer(ctx context.Context, server *server.Server, transport mcp.Transpo
 		if err != nil {
 			if debug {
 				log.Printf("Error handling message: %v", err)
+			}
+			// Send error response instead of continuing
+			if msg.ID != nil {
+				errorResponse := &mcp.Message{
+					JSONRPC: "2.0",
+					ID:      msg.ID,
+					Error: &mcp.Error{
+						Code:    mcp.InternalError,
+						Message: err.Error(),
+					},
+				}
+				if sendErr := transport.Send(ctx, errorResponse); sendErr != nil && debug {
+					log.Printf("Failed to send error response: %v", sendErr)
+				}
 			}
 			continue
 		}

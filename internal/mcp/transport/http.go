@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
@@ -66,13 +67,13 @@ func NewHTTPTransport(addr string, mcpServer MCPMessageHandler, debug bool) *HTT
 // Start starts the HTTP server
 func (h *HTTPTransport) Start(ctx context.Context) error {
 	if h.debug {
-		fmt.Printf("Starting MCP HTTP server on %s\n", h.addr)
+		fmt.Fprintf(os.Stderr, "Starting MCP HTTP server on %s\n", h.addr)
 	}
 
 	go func() {
 		if err := h.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			if h.debug {
-				fmt.Printf("HTTP server error: %v\n", err)
+				fmt.Fprintf(os.Stderr, "HTTP server error: %v\n", err)
 			}
 		}
 	}()
@@ -89,7 +90,7 @@ func (h *HTTPTransport) Start(ctx context.Context) error {
 // Shutdown gracefully shuts down the HTTP server
 func (h *HTTPTransport) Shutdown() error {
 	if h.debug {
-		fmt.Println("Shutting down MCP HTTP server...")
+		fmt.Fprintln(os.Stderr, "Shutting down MCP HTTP server...")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -124,6 +125,8 @@ func (h *HTTPHandler) handleMCP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	w.Header().Set("Content-Type", "application/json")
+	// Keep connection alive for mcp-remote
+	w.Header().Set("Connection", "keep-alive")
 
 	// Handle preflight requests
 	if r.Method == "OPTIONS" {
@@ -141,7 +144,7 @@ func (h *HTTPHandler) handleMCP(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		if h.debug {
-			fmt.Printf("Error reading request body: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Error reading request body: %v\n", err)
 		}
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
@@ -149,16 +152,26 @@ func (h *HTTPHandler) handleMCP(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	if h.debug {
-		fmt.Printf("Received HTTP MCP request: %s\n", string(body))
+		fmt.Fprintf(os.Stderr, "Received HTTP MCP request: %s\n", string(body))
 	}
 
 	// Parse MCP message
 	var mcpRequest mcp.Message
 	if err := json.Unmarshal(body, &mcpRequest); err != nil {
 		if h.debug {
-			fmt.Printf("Error parsing MCP message: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Error parsing MCP message: %v\n", err)
 		}
-		http.Error(w, "Invalid JSON-RPC message", http.StatusBadRequest)
+		// Return JSON-RPC parse error
+		errorResponse := &mcp.Message{
+			JSONRPC: "2.0",
+			Error: &mcp.Error{
+				Code:    mcp.ParseError,
+				Message: "Invalid JSON-RPC message",
+			},
+		}
+		responseData, _ := json.Marshal(errorResponse)
+		w.WriteHeader(http.StatusOK)
+		w.Write(responseData)
 		return
 	}
 
@@ -166,7 +179,7 @@ func (h *HTTPHandler) handleMCP(w http.ResponseWriter, r *http.Request) {
 	mcpResponse, err := h.mcpServer.HandleMessage(r.Context(), &mcpRequest)
 	if err != nil {
 		if h.debug {
-			fmt.Printf("Error handling MCP message: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Error handling MCP message: %v\n", err)
 		}
 		
 		// Return JSON-RPC error response
@@ -190,14 +203,14 @@ func (h *HTTPHandler) handleMCP(w http.ResponseWriter, r *http.Request) {
 		responseData, err := json.Marshal(mcpResponse)
 		if err != nil {
 			if h.debug {
-				fmt.Printf("Error marshaling response: %v\n", err)
+				fmt.Fprintf(os.Stderr, "Error marshaling response: %v\n", err)
 			}
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
 
 		if h.debug {
-			fmt.Printf("Sending HTTP MCP response: %s\n", string(responseData))
+			fmt.Fprintf(os.Stderr, "Sending HTTP MCP response: %s\n", string(responseData))
 		}
 
 		w.WriteHeader(http.StatusOK)
@@ -278,7 +291,7 @@ func (c *HTTPClient) SendMessage(ctx context.Context, message *mcp.Message) (*mc
 	}
 
 	if c.debug {
-		fmt.Printf("Sending HTTP request: %s\n", string(requestData))
+		fmt.Fprintf(os.Stderr, "Sending HTTP request: %s\n", string(requestData))
 	}
 
 	// Create HTTP request
@@ -303,7 +316,7 @@ func (c *HTTPClient) SendMessage(ctx context.Context, message *mcp.Message) (*mc
 	}
 
 	if c.debug {
-		fmt.Printf("Received HTTP response: %s\n", string(responseData))
+		fmt.Fprintf(os.Stderr, "Received HTTP response: %s\n", string(responseData))
 	}
 
 	// Check HTTP status

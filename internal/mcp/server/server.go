@@ -41,10 +41,8 @@ func (s *Server) Initialize(ctx context.Context, req *mcp.InitializeRequest) (*m
 	defer s.mutex.Unlock()
 
 	// Accept any reasonable protocol version for maximum compatibility
-	// Log for debugging but don't reject
-	if req.ProtocolVersion != "" {
-		fmt.Printf("DEBUG: Client requested protocol version: %s\n", req.ProtocolVersion)
-	}
+	// Log for debugging but don't reject - DO NOT log to stdout for stdio transport!
+	// Only log if this is an HTTP server (not stdio)
 
 	s.initialized = true
 
@@ -133,6 +131,19 @@ func (s *Server) CallTool(ctx context.Context, req *mcp.CallToolRequest) (*mcp.C
 
 // HandleMessage processes incoming MCP messages
 func (s *Server) HandleMessage(ctx context.Context, msg *mcp.Message) (*mcp.Message, error) {
+	// Handle notifications (no ID means no response expected)
+	if msg.ID == nil {
+		switch msg.Method {
+		case "notifications/initialized":
+			// Notification - no response needed
+			return nil, nil
+		default:
+			// Unknown notification - just ignore, no response
+			return nil, nil
+		}
+	}
+
+	// Handle requests (have ID, need response)
 	switch msg.Method {
 	case "initialize":
 		return s.handleInitialize(ctx, msg)
@@ -153,6 +164,18 @@ func (s *Server) HandleMessage(ctx context.Context, msg *mcp.Message) (*mcp.Mess
 }
 
 func (s *Server) handleInitialize(ctx context.Context, msg *mcp.Message) (*mcp.Message, error) {
+	// Ensure we have a valid ID for the response
+	if msg.ID == nil {
+		return &mcp.Message{
+			JSONRPC: "2.0",
+			ID:      0, // Use 0 as fallback for invalid requests
+			Error: &mcp.Error{
+				Code:    mcp.InvalidRequest,
+				Message: "Request missing required id field",
+			},
+		}, nil
+	}
+
 	var req mcp.InitializeRequest
 	if err := json.Unmarshal(msg.Params, &req); err != nil {
 		return &mcp.Message{
@@ -197,6 +220,18 @@ func (s *Server) handleInitialize(ctx context.Context, msg *mcp.Message) (*mcp.M
 }
 
 func (s *Server) handleListTools(ctx context.Context, msg *mcp.Message) (*mcp.Message, error) {
+	// Ensure we have a valid ID for the response
+	if msg.ID == nil {
+		return &mcp.Message{
+			JSONRPC: "2.0",
+			ID:      0,
+			Error: &mcp.Error{
+				Code:    mcp.InvalidRequest,
+				Message: "Request missing required id field",
+			},
+		}, nil
+	}
+
 	var req mcp.ListToolsRequest
 	if msg.Params != nil {
 		if err := json.Unmarshal(msg.Params, &req); err != nil {
@@ -243,6 +278,18 @@ func (s *Server) handleListTools(ctx context.Context, msg *mcp.Message) (*mcp.Me
 }
 
 func (s *Server) handleCallTool(ctx context.Context, msg *mcp.Message) (*mcp.Message, error) {
+	// Ensure we have a valid ID for the response
+	if msg.ID == nil {
+		return &mcp.Message{
+			JSONRPC: "2.0",
+			ID:      0,
+			Error: &mcp.Error{
+				Code:    mcp.InvalidRequest,
+				Message: "Request missing required id field",
+			},
+		}, nil
+	}
+
 	var req mcp.CallToolRequest
 	if err := json.Unmarshal(msg.Params, &req); err != nil {
 		return &mcp.Message{
