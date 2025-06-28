@@ -6,7 +6,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
+	"time"
 
 	"github.com/rcliao/teeny-orb/internal/mcp"
 	"github.com/rcliao/teeny-orb/internal/mcp/security"
@@ -365,12 +367,17 @@ func (c *RealCommandTool) InputSchema() mcp.InputSchema {
 				"items":       map[string]interface{}{"type": "string"},
 				"description": "Command arguments (optional)",
 			},
+			"env": map[string]interface{}{
+				"type":        "object",
+				"description": "Environment variables to set for the command (optional)",
+				"additionalProperties": map[string]interface{}{"type": "string"},
+			},
 		},
 		Required: []string{"command"},
 	}
 }
 
-// Handle executes the command
+// Handle executes the command with enhanced cross-platform support
 func (c *RealCommandTool) Handle(ctx context.Context, arguments map[string]interface{}) (*mcp.CallToolResponse, error) {
 	command, ok := arguments["command"].(string)
 	if !ok {
@@ -398,6 +405,19 @@ func (c *RealCommandTool) Handle(ctx context.Context, arguments map[string]inter
 		}
 	}
 
+	// Extract environment variables if provided
+	var envVars map[string]string
+	if envInterface, ok := arguments["env"]; ok {
+		if envMap, ok := envInterface.(map[string]interface{}); ok {
+			envVars = make(map[string]string)
+			for k, v := range envMap {
+				if vStr, ok := v.(string); ok {
+					envVars[k] = vStr
+				}
+			}
+		}
+	}
+
 	// Validate security permissions
 	if c.validator != nil {
 		if err := c.validator.ValidateCommandExecution(ctx, command, args); err != nil {
@@ -413,17 +433,14 @@ func (c *RealCommandTool) Handle(ctx context.Context, arguments map[string]inter
 		}
 	}
 
-	// Execute the actual command
-	cmd := exec.CommandContext(ctx, command, args...)
-	cmd.Dir = c.workDir
-
-	output, err := cmd.CombinedOutput()
+	// Execute the command with enhanced configuration
+	result, err := c.executeCommand(ctx, command, args, envVars)
 	if err != nil {
 		return &mcp.CallToolResponse{
 			Content: []mcp.Content{
 				{
 					Type: "text",
-					Text: fmt.Sprintf("Command failed: %v\nOutput: %s", err, string(output)),
+					Text: result,
 				},
 			},
 			IsError: true,
@@ -434,9 +451,167 @@ func (c *RealCommandTool) Handle(ctx context.Context, arguments map[string]inter
 		Content: []mcp.Content{
 			{
 				Type: "text",
-				Text: fmt.Sprintf("Command: %s %v\n%s", command, args, string(output)),
+				Text: result,
 			},
 		},
 		IsError: false,
 	}, nil
+}
+
+// executeCommand performs cross-platform command execution with enhanced environment management
+func (c *RealCommandTool) executeCommand(ctx context.Context, command string, args []string, envVars map[string]string) (string, error) {
+	// Prepare command execution based on platform
+	cmd, err := c.prepareCommand(ctx, command, args)
+	if err != nil {
+		return "", fmt.Errorf("failed to prepare command: %w", err)
+	}
+
+	// Set working directory
+	cmd.Dir = c.workDir
+
+	// Configure environment
+	if err := c.configureEnvironment(cmd, command, envVars); err != nil {
+		return "", fmt.Errorf("failed to configure environment: %w", err)
+	}
+
+	// Execute with timeout
+	start := time.Now()
+	output, err := cmd.CombinedOutput()
+	duration := time.Since(start)
+
+	// Format result
+	result := c.formatCommandResult(command, args, output, err, duration)
+
+	if err != nil {
+		return result, fmt.Errorf("command execution failed")
+	}
+
+	return result, nil
+}
+
+// prepareCommand creates the appropriate command for the current platform
+func (c *RealCommandTool) prepareCommand(ctx context.Context, command string, args []string) (*exec.Cmd, error) {
+	// Handle shell commands differently on Windows
+	if runtime.GOOS == "windows" {
+		return c.prepareWindowsCommand(ctx, command, args)
+	}
+	return c.prepareUnixCommand(ctx, command, args)
+}
+
+// prepareWindowsCommand handles Windows-specific command preparation
+func (c *RealCommandTool) prepareWindowsCommand(ctx context.Context, command string, args []string) (*exec.Cmd, error) {
+	// Check for shell built-ins that need cmd.exe
+	shellBuiltins := map[string]bool{
+		"dir": true, "cd": true, "copy": true, "move": true, "del": true,
+		"type": true, "echo": true, "set": true, "where": true,
+	}
+
+	if shellBuiltins[strings.ToLower(command)] {
+		// Use cmd.exe for shell built-ins
+		cmdArgs := append([]string{"/c", command}, args...)
+		return exec.CommandContext(ctx, "cmd.exe", cmdArgs...), nil
+	}
+
+	// For regular executables, try to find with extension
+	if !strings.Contains(command, ".") {
+		// Try common Windows executable extensions
+		extensions := []string{".exe", ".bat", ".cmd", ".com"}
+		for _, ext := range extensions {
+			if _, err := exec.LookPath(command + ext); err == nil {
+				command = command + ext
+				break
+			}
+		}
+	}
+
+	return exec.CommandContext(ctx, command, args...), nil
+}
+
+// prepareUnixCommand handles Unix-like command preparation
+func (c *RealCommandTool) prepareUnixCommand(ctx context.Context, command string, args []string) (*exec.Cmd, error) {
+	return exec.CommandContext(ctx, command, args...), nil
+}
+
+// configureEnvironment sets up the command environment with proper variable handling
+func (c *RealCommandTool) configureEnvironment(cmd *exec.Cmd, command string, envVars map[string]string) error {
+	// Start with system environment
+	cmd.Env = os.Environ()
+
+	// Add command-specific environment variables
+	c.addCommandSpecificEnv(cmd, command)
+
+	// Add user-provided environment variables
+	for key, value := range envVars {
+		cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", key, value))
+	}
+
+	return nil
+}
+
+// addCommandSpecificEnv adds environment variables specific to certain commands
+func (c *RealCommandTool) addCommandSpecificEnv(cmd *exec.Cmd, command string) {
+	switch command {
+	case "go":
+		// Ensure Go has proper cache directories
+		goCacheDir := filepath.Join(c.workDir, ".go-cache")
+		goModCacheDir := filepath.Join(c.workDir, ".go-mod-cache")
+		goTmpDir := filepath.Join(c.workDir, ".go-tmp")
+
+		// Create directories if they don't exist
+		os.MkdirAll(goCacheDir, 0755)
+		os.MkdirAll(goModCacheDir, 0755)
+		os.MkdirAll(goTmpDir, 0755)
+
+		// Set Go environment variables
+		cmd.Env = append(cmd.Env,
+			fmt.Sprintf("GOCACHE=%s", goCacheDir),
+			fmt.Sprintf("GOMODCACHE=%s", goModCacheDir),
+			fmt.Sprintf("GOTMPDIR=%s", goTmpDir),
+		)
+
+	case "npm", "yarn", "node":
+		// Set Node.js cache directories
+		npmCacheDir := filepath.Join(c.workDir, ".npm-cache")
+		os.MkdirAll(npmCacheDir, 0755)
+		cmd.Env = append(cmd.Env, fmt.Sprintf("npm_config_cache=%s", npmCacheDir))
+
+	case "python", "python3", "pip", "pip3":
+		// Set Python cache directories
+		pythonCacheDir := filepath.Join(c.workDir, ".python-cache")
+		os.MkdirAll(pythonCacheDir, 0755)
+		cmd.Env = append(cmd.Env,
+			fmt.Sprintf("PYTHONPYCACHEPREFIX=%s", pythonCacheDir),
+			fmt.Sprintf("PIP_CACHE_DIR=%s", pythonCacheDir),
+		)
+	}
+}
+
+// formatCommandResult creates a standardized command result format
+func (c *RealCommandTool) formatCommandResult(command string, args []string, output []byte, err error, duration time.Duration) string {
+	var result strings.Builder
+
+	// Command header
+	result.WriteString(fmt.Sprintf("Command: %s", command))
+	if len(args) > 0 {
+		result.WriteString(fmt.Sprintf(" %s", strings.Join(args, " ")))
+	}
+	result.WriteString(fmt.Sprintf("\nDuration: %v\n", duration.Round(time.Millisecond)))
+	result.WriteString(fmt.Sprintf("Working Directory: %s\n", c.workDir))
+
+	// Output section
+	if len(output) > 0 {
+		result.WriteString("\nOutput:\n")
+		result.WriteString(strings.TrimSpace(string(output)))
+		result.WriteString("\n")
+	}
+
+	// Error section
+	if err != nil {
+		result.WriteString(fmt.Sprintf("\nError: %v\n", err))
+		if exitError, ok := err.(*exec.ExitError); ok {
+			result.WriteString(fmt.Sprintf("Exit Code: %d\n", exitError.ExitCode()))
+		}
+	}
+
+	return result.String()
 }
