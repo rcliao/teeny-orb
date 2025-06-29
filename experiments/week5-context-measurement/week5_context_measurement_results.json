@@ -1,0 +1,90 @@
+{
+  "experiment_name": "Week 5: Context Measurement Foundation",
+  "start_time": "2025-06-28T10:03:09.241769318-07:00",
+  "end_time": "2025-06-28T10:03:09.330283877-07:00",
+  "duration": 88514558,
+  "projects_analyzed": 1,
+  "measurements": [
+    {
+      "project_path": "../../",
+      "project_name": "..",
+      "total_files": 74,
+      "total_tokens": 168268,
+      "languages": {
+        "go": 51,
+        "json": 2,
+        "markdown": 15,
+        "unknown": 5,
+        "yaml": 1
+      },
+      "file_type_breakdown": {
+        "configuration": {
+          "count": 3,
+          "total_tokens": 313,
+          "avg_tokens": 104.33333333333333,
+          "percentage": 0.18601278912211472
+        },
+        "documentation": {
+          "count": 17,
+          "total_tokens": 49744,
+          "avg_tokens": 2926.1176470588234,
+          "percentage": 29.562364799011103
+        },
+        "source": {
+          "count": 51,
+          "total_tokens": 110337,
+          "avg_tokens": 2163.470588235294,
+          "percentage": 65.57218247082037
+        },
+        "unknown": {
+          "count": 3,
+          "total_tokens": 7874,
+          "avg_tokens": 2624.6666666666665,
+          "percentage": 4.679439941046426
+        }
+      },
+      "dependency_metrics": {
+        "total_nodes": 0,
+        "total_edges": 0,
+        "avg_dependencies": 0,
+        "max_dependencies": 0,
+        "connected_components": 1
+      },
+      "analysis_time": 88394149,
+      "task_scenarios": []
+    }
+  ],
+  "summary": {
+    "total_projects": 1,
+    "total_files": 74,
+    "total_tokens": 168268,
+    "avg_tokens_per_project": 168268,
+    "avg_tokens_per_file": 2273.891891891892,
+    "language_distribution": {
+      "go": 68.91891891891892,
+      "json": 2.7027027027027026,
+      "markdown": 20.27027027027027,
+      "unknown": 6.756756756756757,
+      "yaml": 1.3513513513513513
+    },
+    "file_type_distribution": {
+      "configuration": 4.054054054054054,
+      "documentation": 22.972972972972975,
+      "source": 68.91891891891892,
+      "unknown": 4.054054054054054
+    },
+    "context_optimization": {
+      "avg_reduction_ratio": 0,
+      "avg_selection_time_ms": 0,
+      "avg_relevance_score": 0,
+      "best_case_reduction": 0,
+      "worst_case_reduction": 0,
+      "token_budget_efficiency": 0
+    }
+  },
+  "conclusions": [
+    "Large average file size (2274 tokens) suggests significant context optimization potential",
+    "Fast context selection (0.0 ms average) meets \u003c100ms performance target",
+    "go dominates codebase (68.9%) - language-specific optimization recommended"
+  ]
+}

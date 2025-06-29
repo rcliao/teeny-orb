@@ -47,8 +47,14 @@ type AIProvider interface {
 	// CountTokens estimates token count for the given text
 	CountTokens(text string) (int, error)
 	
+	// CountMessages estimates token count for a set of messages
+	CountMessages(messages []Message) (int, error)
+	
 	// GetModel returns information about the current model
 	GetModel() *ModelInfo
+	
+	// GetContextWindow returns the maximum context window size
+	GetContextWindow() int
 }
 
 // ChatRequest represents a chat request to an AI provider

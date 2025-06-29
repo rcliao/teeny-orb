@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	contextpkg "github.com/rcliao/teeny-orb/internal/context"
 	"github.com/rcliao/teeny-orb/internal/mcp"
 	"github.com/rcliao/teeny-orb/internal/mcp/security"
 	"github.com/rcliao/teeny-orb/internal/mcp/server"
@@ -132,6 +133,25 @@ func registerTools(server *server.Server) error {
 	if err := server.RegisterTool(cmdTool); err != nil {
 		return fmt.Errorf("failed to register command tool: %w", err)
 	}
+
+	// Create context analysis tools
+	tokenCounter := contextpkg.NewSimpleTokenCounter()
+	analyzer := contextpkg.NewDefaultAnalyzer(tokenCounter, nil)
+	
+	// Register context analysis tool
+	contextAnalysisTool := tools.NewContextAnalysisHandler(analyzer)
+	if err := server.RegisterTool(contextAnalysisTool); err != nil {
+		return fmt.Errorf("failed to register context analysis tool: %w", err)
+	}
+	
+	// Register token counting tool
+	tokenCountTool := tools.NewTokenCountHandler(analyzer)
+	if err := server.RegisterTool(tokenCountTool); err != nil {
+		return fmt.Errorf("failed to register token count tool: %w", err)
+	}
+
+	// Note: Context optimization tool requires optimizer implementation
+	// Will be added in Week 6 when smart selection algorithms are implemented
 
 	return nil
 }
