@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	contextpkg "github.com/rcliao/teeny-orb/internal/context"
 	"github.com/rcliao/teeny-orb/internal/mcp"
 	"github.com/rcliao/teeny-orb/internal/mcp/security"
 	"github.com/rcliao/teeny-orb/internal/mcp/server"
@@ -131,6 +132,29 @@ func registerTools(server *server.Server) error {
 	cmdTool := tools.NewRealCommandTool(validator, workDir)
 	if err := server.RegisterTool(cmdTool); err != nil {
 		return fmt.Errorf("failed to register command tool: %w", err)
+	}
+
+	// Create context analysis tools
+	tokenCounter := contextpkg.NewSimpleTokenCounter()
+	analyzer := contextpkg.NewDefaultAnalyzer(tokenCounter, nil)
+	
+	// Register context analysis tool
+	contextAnalysisTool := tools.NewContextAnalysisHandler(analyzer)
+	if err := server.RegisterTool(contextAnalysisTool); err != nil {
+		return fmt.Errorf("failed to register context analysis tool: %w", err)
+	}
+	
+	// Register token counting tool
+	tokenCountTool := tools.NewTokenCountHandler(analyzer)
+	if err := server.RegisterTool(tokenCountTool); err != nil {
+		return fmt.Errorf("failed to register token count tool: %w", err)
+	}
+
+	// Create and register context optimization tool
+	optimizer := contextpkg.NewDefaultOptimizer(analyzer, nil, nil, nil)
+	contextOptimizationTool := tools.NewContextOptimizationHandler(optimizer, analyzer)
+	if err := server.RegisterTool(contextOptimizationTool); err != nil {
+		return fmt.Errorf("failed to register context optimization tool: %w", err)
 	}
 
 	return nil

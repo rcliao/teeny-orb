@@ -1,0 +1,73 @@
+{
+  "task_id": "test_strategy_selection_feature_1751259582",
+  "task": {
+    "type": "feature",
+    "description": "Implement new user authentication system",
+    "priority": "medium",
+    "scope": "project",
+    "keywords": null,
+    "files": null,
+    "created_at": "0001-01-01T00:00:00Z"
+  },
+  "selected_context": {
+    "task": {
+      "type": "feature",
+      "description": "Implement new user authentication system",
+      "priority": "medium",
+      "scope": "project",
+      "keywords": null,
+      "files": null,
+      "created_at": "0001-01-01T00:00:00Z"
+    },
+    "files": [
+      {
+        "file_info": {
+          "path": "../../internal/mcp/tools/real_filesystem.go",
+          "size": 16216,
+          "token_count": 6380,
+          "last_modified": "2025-06-27T20:11:27.733740805-07:00",
+          "file_type": "source",
+          "language": "go",
+          "relevance_score": 0,
+          "dependencies": null,
+          "metadata": {}
+        },
+        "relevance_score": 0.6164287550414727,
+        "inclusion_reason": "relevance_score",
+        "priority": 1
+      }
+    ],
+    "total_tokens": 6380,
+    "total_files": 1,
+    "selection_score": 0.6164287550414727,
+    "strategy": "relevance",
+    "constraints": {
+      "max_tokens": 8000,
+      "max_files": 50,
+      "min_relevance_score": 0.1,
+      "preferred_types": [
+        "source",
+        "configuration"
+      ],
+      "excluded_patterns": null,
+      "include_tests": false,
+      "include_docs": false,
+      "freshness_bias": 0.3,
+      "dependency_depth": 2,
+      "strategy": "relevance"
+    },
+    "metadata": {},
+    "created_at": "2025-06-29T21:59:42.32520913-07:00",
+    "selection_time": 387239
+  },
+  "task_success": true,
+  "quality_score": 0.9,
+  "completion_time": 300000000000,
+  "tokens_used": 6380,
+  "missing_files": [],
+  "unnecessary_files": [
+    "../../internal/mcp/tools/real_filesystem.go"
+  ],
+  "user_rating": 0,
+  "timestamp": "2025-06-29T21:59:42.327340819-07:00"
+}
