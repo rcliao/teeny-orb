@@ -150,8 +150,12 @@ func registerTools(server *server.Server) error {
 		return fmt.Errorf("failed to register token count tool: %w", err)
 	}
 
-	// Note: Context optimization tool requires optimizer implementation
-	// Will be added in Week 6 when smart selection algorithms are implemented
+	// Create and register context optimization tool
+	optimizer := contextpkg.NewDefaultOptimizer(analyzer, nil, nil, nil)
+	contextOptimizationTool := tools.NewContextOptimizationHandler(optimizer, analyzer)
+	if err := server.RegisterTool(contextOptimizationTool); err != nil {
+		return fmt.Errorf("failed to register context optimization tool: %w", err)
+	}
 
 	return nil
 }

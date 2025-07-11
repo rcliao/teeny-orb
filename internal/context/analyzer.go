@@ -107,6 +107,8 @@ type ContextAnalyzer interface {
 // DefaultAnalyzer implements the ContextAnalyzer interface
 type DefaultAnalyzer struct {
 	tokenCounter TokenCounter
+	depAnalyzer  DependencyAnalyzer
+	scorer       RelevanceScorer
 	config       *AnalyzerConfig
 }
 
@@ -150,8 +152,16 @@ func NewDefaultAnalyzer(tokenCounter TokenCounter, config *AnalyzerConfig) *Defa
 		}
 	}
 	
+	// Create dependency analyzer (will be project-root aware when analyzing)
+	var depAnalyzer DependencyAnalyzer = NewMultilanguageDependencyAnalyzer(".")
+	
+	// Create relevance scorer
+	scorer := NewSemanticRelevanceScorer(nil)
+	
 	return &DefaultAnalyzer{
 		tokenCounter: tokenCounter,
+		depAnalyzer:  depAnalyzer,
+		scorer:       scorer,
 		config:       config,
 	}
 }
@@ -207,7 +217,11 @@ func (a *DefaultAnalyzer) AnalyzeProject(ctx context.Context, rootPath string) (
 	// Build dependency graph
 	dependencyGraph, err := a.BuildDependencyGraph(ctx, projectCtx.Files)
 	if err != nil {
-		return nil, fmt.Errorf("failed to build dependency graph: %w", err)
+		// Don't fail the entire analysis if dependency graph fails
+		dependencyGraph = &DependencyGraph{
+			Nodes: make(map[string]*DependencyNode),
+			Edges: []DependencyEdge{},
+		}
 	}
 	projectCtx.DependencyGraph = dependencyGraph
 	
@@ -338,18 +352,20 @@ func (a *DefaultAnalyzer) analyzeProjectStructure(projectCtx *ProjectContext) *C
 	return analysis
 }
 
-// Placeholder implementations for interface compliance
+// ScoreFileRelevance calculates relevance score using the semantic scorer
 func (a *DefaultAnalyzer) ScoreFileRelevance(file *FileInfo, taskType TaskType, taskDescription string) float64 {
-	// TODO: Implement sophisticated relevance scoring
-	return 0.5
+	// Create a task object for scoring
+	task := &Task{
+		Type:        taskType,
+		Description: taskDescription,
+		Keywords:    []string{}, // Will be extracted from description
+	}
+	
+	return a.scorer.ScoreFile(file, task)
 }
 
 func (a *DefaultAnalyzer) BuildDependencyGraph(ctx context.Context, files []FileInfo) (*DependencyGraph, error) {
-	// TODO: Implement dependency analysis
-	return &DependencyGraph{
-		Nodes: make(map[string]*DependencyNode),
-		Edges: []DependencyEdge{},
-	}, nil
+	return a.depAnalyzer.AnalyzeDependencies(ctx, files)
 }
 
 func (a *DefaultAnalyzer) CountTokens(content string) (int, error) {

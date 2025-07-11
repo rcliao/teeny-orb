@@ -1,0 +1,759 @@
+{
+  "experiment_name": "Week 6: Smart Context Selection",
+  "start_time": "2025-06-29T18:04:36.787160473-07:00",
+  "end_time": "2025-06-29T18:04:36.877825873-07:00",
+  "duration": 90665401,
+  "projects_analyzed": 1,
+  "strategies_results": [
+    {
+      "strategy": "relevance",
+      "avg_selection_time_ms": 0.4001915,
+      "avg_token_reduction": 0.9778563955432356,
+      "avg_relevance_score": 0.5760610891073872,
+      "avg_files_selected": 2.5,
+      "test_cases": [
+        {
+          "task_description": "Add new REST API endpoint for user management",
+          "task_type": "feature",
+          "strategy": "relevance",
+          "token_budget": 8000,
+          "selected_files": 2,
+          "selected_tokens": 3031,
+          "token_reduction": 0.983653856524975,
+          "relevance_score": 0.5682582707274434,
+          "selection_time": 745398,
+          "top_files": [
+            "../../cmd/mcp-server/main.go",
+            "../../internal/mcp/transport/stdio.go"
+          ]
+        },
+        {
+          "task_description": "Fix memory leak in session handler",
+          "task_type": "debug",
+          "strategy": "relevance",
+          "token_budget": 8000,
+          "selected_files": 2,
+          "selected_tokens": 3031,
+          "token_reduction": 0.983653856524975,
+          "relevance_score": 0.5882582706669451,
+          "selection_time": 375970,
+          "top_files": [
+            "../../cmd/mcp-server/main.go",
+            "../../internal/mcp/transport/stdio.go"
+          ]
+        },
+        {
+          "task_description": "Refactor error handling patterns",
+          "task_type": "refactor",
+          "strategy": "relevance",
+          "token_budget": 8000,
+          "selected_files": 3,
+          "selected_tokens": 5686,
+          "token_reduction": 0.9693354761468187,
+          "relevance_score": 0.5898816985485765,
+          "selection_time": 272114,
+          "top_files": [
+            "../../cmd/mcp-server/main.go",
+            "../../internal/providers/interface.go",
+            "../../internal/mcp/transport/stdio.go"
+          ]
+        },
+        {
+          "task_description": "Add integration tests for authentication",
+          "task_type": "test",
+          "strategy": "relevance",
+          "token_budget": 8000,
+          "selected_files": 3,
+          "selected_tokens": 4676,
+          "token_reduction": 0.9747823929761738,
+          "relevance_score": 0.5578461164865837,
+          "selection_time": 207284,
+          "top_files": [
+            "../../internal/context/analyzer_test.go",
+            "../../cmd/mcp-server/main.go",
+            "../../internal/mcp/transport/stdio.go"
+          ]
+        }
+      ]
+    },
+    {
+      "strategy": "dependency",
+      "avg_selection_time_ms": 0.21572675,
+      "avg_token_reduction": 0.9778563955432356,
+      "avg_relevance_score": 0.4032427623009022,
+      "avg_files_selected": 2.5,
+      "test_cases": [
+        {
+          "task_description": "Add new REST API endpoint for user management",
+          "task_type": "feature",
+          "strategy": "dependency",
+          "token_budget": 8000,
+          "selected_files": 2,
+          "selected_tokens": 3031,
+          "token_reduction": 0.983653856524975,
+          "relevance_score": 0.39778078940928674,
+          "selection_time": 218621,
+          "top_files": [
+            "../../cmd/mcp-server/main.go",
+            "../../internal/mcp/transport/stdio.go"
+          ]
+        },
+        {
+          "task_description": "Fix memory leak in session handler",
+          "task_type": "debug",
+          "strategy": "dependency",
+          "token_budget": 8000,
+          "selected_files": 2,
+          "selected_tokens": 3031,
+          "token_reduction": 0.983653856524975,
+          "relevance_score": 0.41178078939337837,
+          "selection_time": 211646,
+          "top_files": [
+            "../../cmd/mcp-server/main.go",
+            "../../internal/mcp/transport/stdio.go"
+          ]
+        },
+        {
+          "task_description": "Refactor error handling patterns",
+          "task_type": "refactor",
+          "strategy": "dependency",
+          "token_budget": 8000,
+          "selected_files": 3,
+          "selected_tokens": 5686,
+          "token_reduction": 0.9693354761468187,
+          "relevance_score": 0.4129171889218067,
+          "selection_time": 214634,
+          "top_files": [
+            "../../cmd/mcp-server/main.go",
+            "../../internal/providers/interface.go",
+            "../../internal/mcp/transport/stdio.go"
+          ]
+        },
+        {
+          "task_description": "Add integration tests for authentication",
+          "task_type": "test",
+          "strategy": "dependency",
+          "token_budget": 8000,
+          "selected_files": 3,
+          "selected_tokens": 4676,
+          "token_reduction": 0.9747823929761738,
+          "relevance_score": 0.39049228147913717,
+          "selection_time": 218006,
+          "top_files": [
+            "../../internal/context/analyzer_test.go",
+            "../../cmd/mcp-server/main.go",
+            "../../internal/mcp/transport/stdio.go"
+          ]
+        }
+      ]
+    },
+    {
+      "strategy": "freshness",
+      "avg_selection_time_ms": 0.367862,
+      "avg_token_reduction": 0.9880545338841371,
+      "avg_relevance_score": 0.7059018429281171,
+      "avg_files_selected": 1,
+      "test_cases": [
+        {
+          "task_description": "Add new REST API endpoint for user management",
+          "task_type": "feature",
+          "strategy": "freshness",
+          "token_budget": 8000,
+          "selected_files": 1,
+          "selected_tokens": 2215,
+          "token_reduction": 0.9880545338841371,
+          "relevance_score": 0.7024018429618889,
+          "selection_time": 230425,
+          "top_files": [
+            "../../cmd/mcp-server/main.go"
+          ]
+        },
+        {
+          "task_description": "Fix memory leak in session handler",
+          "task_type": "debug",
+          "strategy": "freshness",
+          "token_budget": 8000,
+          "selected_files": 1,
+          "selected_tokens": 2215,
+          "token_reduction": 0.9880545338841371,
+          "relevance_score": 0.7164018429437731,
+          "selection_time": 210906,
+          "top_files": [
+            "../../cmd/mcp-server/main.go"
+          ]
+        },
+        {
+          "task_description": "Refactor error handling patterns",
+          "task_type": "refactor",
+          "strategy": "freshness",
+          "token_budget": 8000,
+          "selected_files": 1,
+          "selected_tokens": 2215,
+          "token_reduction": 0.9880545338841371,
+          "relevance_score": 0.7164018429269436,
+          "selection_time": 567136,
+          "top_files": [
+            "../../cmd/mcp-server/main.go"
+          ]
+        },
+        {
+          "task_description": "Add integration tests for authentication",
+          "task_type": "test",
+          "strategy": "freshness",
+          "token_budget": 8000,
+          "selected_files": 1,
+          "selected_tokens": 2215,
+          "token_reduction": 0.9880545338841371,
+          "relevance_score": 0.6884018428798626,
+          "selection_time": 462981,
+          "top_files": [
+            "../../cmd/mcp-server/main.go"
+          ]
+        }
+      ]
+    },
+    {
+      "strategy": "compactness",
+      "avg_selection_time_ms": 0.19985175000000002,
+      "avg_token_reduction": 0.9597656207867289,
+      "avg_relevance_score": 2.4554115441693374,
+      "avg_files_selected": 16,
+      "test_cases": [
+        {
+          "task_description": "Add new REST API endpoint for user management",
+          "task_type": "feature",
+          "strategy": "compactness",
+          "token_budget": 8000,
+          "selected_files": 16,
+          "selected_tokens": 7309,
+          "token_reduction": 0.9605826583111322,
+          "relevance_score": 2.453754889361248,
+          "selection_time": 226822,
+          "top_files": [
+            "../../internal/container/session.go",
+            "../../mcp-config.json",
+            "../../cmd/teeny-orb/main.go",
+            "../../.claude/settings.local.json",
+            "../../configs/default.yaml"
+          ]
+        },
+        {
+          "task_description": "Fix memory leak in session handler",
+          "task_type": "debug",
+          "strategy": "compactness",
+          "token_budget": 8000,
+          "selected_files": 16,
+          "selected_tokens": 7511,
+          "token_reduction": 0.9594932749452612,
+          "relevance_score": 2.6113602332966286,
+          "selection_time": 193065,
+          "top_files": [
+            "../../internal/container/session.go",
+            "../../mcp-config.json",
+            "../../cmd/teeny-orb/main.go",
+            "../../.claude/settings.local.json",
+            "../../internal/cli/commands/review.go"
+          ]
+        },
+        {
+          "task_description": "Refactor error handling patterns",
+          "task_type": "refactor",
+          "strategy": "compactness",
+          "token_budget": 8000,
+          "selected_files": 16,
+          "selected_tokens": 7511,
+          "token_reduction": 0.9594932749452612,
+          "relevance_score": 2.4445071645320855,
+          "selection_time": 192753,
+          "top_files": [
+            "../../internal/container/session.go",
+            "../../cmd/teeny-orb/main.go",
+            "../../mcp-config.json",
+            "../../.claude/settings.local.json",
+            "../../internal/cli/commands/review.go"
+          ]
+        },
+        {
+          "task_description": "Add integration tests for authentication",
+          "task_type": "test",
+          "strategy": "compactness",
+          "token_budget": 8000,
+          "selected_files": 16,
+          "selected_tokens": 7511,
+          "token_reduction": 0.9594932749452612,
+          "relevance_score": 2.3120238894873864,
+          "selection_time": 186767,
+          "top_files": [
+            "../../internal/container/session.go",
+            "../../mcp-config.json",
+            "../../cmd/teeny-orb/main.go",
+            "../../.claude/settings.local.json",
+            "../../internal/cli/commands/review.go"
+          ]
+        }
+      ]
+    },
+    {
+      "strategy": "balanced",
+      "avg_selection_time_ms": 0.21280400000000002,
+      "avg_token_reduction": 0.9655603852749884,
+      "avg_relevance_score": 0.4701396592275956,
+      "avg_files_selected": 4,
+      "test_cases": [
+        {
+          "task_description": "Add new REST API endpoint for user management",
+          "task_type": "feature",
+          "strategy": "balanced",
+          "token_budget": 8000,
+          "selected_files": 4,
+          "selected_tokens": 6386,
+          "token_reduction": 0.9655603852749884,
+          "relevance_score": 0.46607715925380744,
+          "selection_time": 243207,
+          "top_files": [
+            "../../internal/mcp/transport/stdio.go",
+            "../../cmd/mcp-server/main.go",
+            "../../cmd/mcp-http-server/main.go",
+            "../../internal/context/analyzer_test.go"
+          ]
+        },
+        {
+          "task_description": "Fix memory leak in session handler",
+          "task_type": "debug",
+          "strategy": "balanced",
+          "token_budget": 8000,
+          "selected_files": 4,
+          "selected_tokens": 6386,
+          "token_reduction": 0.9655603852749884,
+          "relevance_score": 0.4760771592354849,
+          "selection_time": 195720,
+          "top_files": [
+            "../../internal/mcp/transport/stdio.go",
+            "../../cmd/mcp-server/main.go",
+            "../../cmd/mcp-http-server/main.go",
+            "../../internal/context/analyzer_test.go"
+          ]
+        },
+        {
+          "task_description": "Refactor error handling patterns",
+          "task_type": "refactor",
+          "strategy": "balanced",
+          "token_budget": 8000,
+          "selected_files": 4,
+          "selected_tokens": 6386,
+          "token_reduction": 0.9655603852749884,
+          "relevance_score": 0.4760771592194284,
+          "selection_time": 204630,
+          "top_files": [
+            "../../internal/mcp/transport/stdio.go",
+            "../../cmd/mcp-server/main.go",
+            "../../cmd/mcp-http-server/main.go",
+            "../../internal/context/analyzer_test.go"
+          ]
+        },
+        {
+          "task_description": "Add integration tests for authentication",
+          "task_type": "test",
+          "strategy": "balanced",
+          "token_budget": 8000,
+          "selected_files": 4,
+          "selected_tokens": 6386,
+          "token_reduction": 0.9655603852749884,
+          "relevance_score": 0.4623271592016618,
+          "selection_time": 207659,
+          "top_files": [
+            "../../internal/context/analyzer_test.go",
+            "../../internal/mcp/transport/stdio.go",
+            "../../cmd/mcp-server/main.go",
+            "../../cmd/mcp-http-server/main.go"
+          ]
+        }
+      ]
+    }
+  ],
+  "task_results": [
+    {
+      "task_type": "feature",
+      "avg_token_reduction": 0.9763010581040416,
+      "avg_relevance_score": 0.917654590342735,
+      "best_strategy": "freshness",
+      "test_cases": [
+        {
+          "task_description": "Add new REST API endpoint for user management",
+          "task_type": "feature",
+          "strategy": "relevance",
+          "token_budget": 8000,
+          "selected_files": 2,
+          "selected_tokens": 3031,
+          "token_reduction": 0.983653856524975,
+          "relevance_score": 0.5682582707274434,
+          "selection_time": 745398,
+          "top_files": [
+            "../../cmd/mcp-server/main.go",
+            "../../internal/mcp/transport/stdio.go"
+          ]
+        },
+        {
+          "task_description": "Add new REST API endpoint for user management",
+          "task_type": "feature",
+          "strategy": "dependency",
+          "token_budget": 8000,
+          "selected_files": 2,
+          "selected_tokens": 3031,
+          "token_reduction": 0.983653856524975,
+          "relevance_score": 0.39778078940928674,
+          "selection_time": 218621,
+          "top_files": [
+            "../../cmd/mcp-server/main.go",
+            "../../internal/mcp/transport/stdio.go"
+          ]
+        },
+        {
+          "task_description": "Add new REST API endpoint for user management",
+          "task_type": "feature",
+          "strategy": "freshness",
+          "token_budget": 8000,
+          "selected_files": 1,
+          "selected_tokens": 2215,
+          "token_reduction": 0.9880545338841371,
+          "relevance_score": 0.7024018429618889,
+          "selection_time": 230425,
+          "top_files": [
+            "../../cmd/mcp-server/main.go"
+          ]
+        },
+        {
+          "task_description": "Add new REST API endpoint for user management",
+          "task_type": "feature",
+          "strategy": "compactness",
+          "token_budget": 8000,
+          "selected_files": 16,
+          "selected_tokens": 7309,
+          "token_reduction": 0.9605826583111322,
+          "relevance_score": 2.453754889361248,
+          "selection_time": 226822,
+          "top_files": [
+            "../../internal/container/session.go",
+            "../../mcp-config.json",
+            "../../cmd/teeny-orb/main.go",
+            "../../.claude/settings.local.json",
+            "../../configs/default.yaml"
+          ]
+        },
+        {
+          "task_description": "Add new REST API endpoint for user management",
+          "task_type": "feature",
+          "strategy": "balanced",
+          "token_budget": 8000,
+          "selected_files": 4,
+          "selected_tokens": 6386,
+          "token_reduction": 0.9655603852749884,
+          "relevance_score": 0.46607715925380744,
+          "selection_time": 243207,
+          "top_files": [
+            "../../internal/mcp/transport/stdio.go",
+            "../../cmd/mcp-server/main.go",
+            "../../cmd/mcp-http-server/main.go",
+            "../../internal/context/analyzer_test.go"
+          ]
+        }
+      ]
+    },
+    {
+      "task_type": "debug",
+      "avg_token_reduction": 0.9760831814308674,
+      "avg_relevance_score": 0.9607756591072419,
+      "best_strategy": "freshness",
+      "test_cases": [
+        {
+          "task_description": "Fix memory leak in session handler",
+          "task_type": "debug",
+          "strategy": "relevance",
+          "token_budget": 8000,
+          "selected_files": 2,
+          "selected_tokens": 3031,
+          "token_reduction": 0.983653856524975,
+          "relevance_score": 0.5882582706669451,
+          "selection_time": 375970,
+          "top_files": [
+            "../../cmd/mcp-server/main.go",
+            "../../internal/mcp/transport/stdio.go"
+          ]
+        },
+        {
+          "task_description": "Fix memory leak in session handler",
+          "task_type": "debug",
+          "strategy": "dependency",
+          "token_budget": 8000,
+          "selected_files": 2,
+          "selected_tokens": 3031,
+          "token_reduction": 0.983653856524975,
+          "relevance_score": 0.41178078939337837,
+          "selection_time": 211646,
+          "top_files": [
+            "../../cmd/mcp-server/main.go",
+            "../../internal/mcp/transport/stdio.go"
+          ]
+        },
+        {
+          "task_description": "Fix memory leak in session handler",
+          "task_type": "debug",
+          "strategy": "freshness",
+          "token_budget": 8000,
+          "selected_files": 1,
+          "selected_tokens": 2215,
+          "token_reduction": 0.9880545338841371,
+          "relevance_score": 0.7164018429437731,
+          "selection_time": 210906,
+          "top_files": [
+            "../../cmd/mcp-server/main.go"
+          ]
+        },
+        {
+          "task_description": "Fix memory leak in session handler",
+          "task_type": "debug",
+          "strategy": "compactness",
+          "token_budget": 8000,
+          "selected_files": 16,
+          "selected_tokens": 7511,
+          "token_reduction": 0.9594932749452612,
+          "relevance_score": 2.6113602332966286,
+          "selection_time": 193065,
+          "top_files": [
+            "../../internal/container/session.go",
+            "../../mcp-config.json",
+            "../../cmd/teeny-orb/main.go",
+            "../../.claude/settings.local.json",
+            "../../internal/cli/commands/review.go"
+          ]
+        },
+        {
+          "task_description": "Fix memory leak in session handler",
+          "task_type": "debug",
+          "strategy": "balanced",
+          "token_budget": 8000,
+          "selected_files": 4,
+          "selected_tokens": 6386,
+          "token_reduction": 0.9655603852749884,
+          "relevance_score": 0.4760771592354849,
+          "selection_time": 195720,
+          "top_files": [
+            "../../internal/mcp/transport/stdio.go",
+            "../../cmd/mcp-server/main.go",
+            "../../cmd/mcp-http-server/main.go",
+            "../../internal/context/analyzer_test.go"
+          ]
+        }
+      ]
+    },
+    {
+      "task_type": "refactor",
+      "avg_token_reduction": 0.970355829279605,
+      "avg_relevance_score": 0.9279570108297683,
+      "best_strategy": "freshness",
+      "test_cases": [
+        {
+          "task_description": "Refactor error handling patterns",
+          "task_type": "refactor",
+          "strategy": "relevance",
+          "token_budget": 8000,
+          "selected_files": 3,
+          "selected_tokens": 5686,
+          "token_reduction": 0.9693354761468187,
+          "relevance_score": 0.5898816985485765,
+          "selection_time": 272114,
+          "top_files": [
+            "../../cmd/mcp-server/main.go",
+            "../../internal/providers/interface.go",
+            "../../internal/mcp/transport/stdio.go"
+          ]
+        },
+        {
+          "task_description": "Refactor error handling patterns",
+          "task_type": "refactor",
+          "strategy": "dependency",
+          "token_budget": 8000,
+          "selected_files": 3,
+          "selected_tokens": 5686,
+          "token_reduction": 0.9693354761468187,
+          "relevance_score": 0.4129171889218067,
+          "selection_time": 214634,
+          "top_files": [
+            "../../cmd/mcp-server/main.go",
+            "../../internal/providers/interface.go",
+            "../../internal/mcp/transport/stdio.go"
+          ]
+        },
+        {
+          "task_description": "Refactor error handling patterns",
+          "task_type": "refactor",
+          "strategy": "freshness",
+          "token_budget": 8000,
+          "selected_files": 1,
+          "selected_tokens": 2215,
+          "token_reduction": 0.9880545338841371,
+          "relevance_score": 0.7164018429269436,
+          "selection_time": 567136,
+          "top_files": [
+            "../../cmd/mcp-server/main.go"
+          ]
+        },
+        {
+          "task_description": "Refactor error handling patterns",
+          "task_type": "refactor",
+          "strategy": "compactness",
+          "token_budget": 8000,
+          "selected_files": 16,
+          "selected_tokens": 7511,
+          "token_reduction": 0.9594932749452612,
+          "relevance_score": 2.4445071645320855,
+          "selection_time": 192753,
+          "top_files": [
+            "../../internal/container/session.go",
+            "../../cmd/teeny-orb/main.go",
+            "../../mcp-config.json",
+            "../../.claude/settings.local.json",
+            "../../internal/cli/commands/review.go"
+          ]
+        },
+        {
+          "task_description": "Refactor error handling patterns",
+          "task_type": "refactor",
+          "strategy": "balanced",
+          "token_budget": 8000,
+          "selected_files": 4,
+          "selected_tokens": 6386,
+          "token_reduction": 0.9655603852749884,
+          "relevance_score": 0.4760771592194284,
+          "selection_time": 204630,
+          "top_files": [
+            "../../internal/mcp/transport/stdio.go",
+            "../../cmd/mcp-server/main.go",
+            "../../cmd/mcp-http-server/main.go",
+            "../../internal/context/analyzer_test.go"
+          ]
+        }
+      ]
+    },
+    {
+      "task_type": "test",
+      "avg_token_reduction": 0.9725345960113468,
+      "avg_relevance_score": 0.8822182579069263,
+      "best_strategy": "freshness",
+      "test_cases": [
+        {
+          "task_description": "Add integration tests for authentication",
+          "task_type": "test",
+          "strategy": "relevance",
+          "token_budget": 8000,
+          "selected_files": 3,
+          "selected_tokens": 4676,
+          "token_reduction": 0.9747823929761738,
+          "relevance_score": 0.5578461164865837,
+          "selection_time": 207284,
+          "top_files": [
+            "../../internal/context/analyzer_test.go",
+            "../../cmd/mcp-server/main.go",
+            "../../internal/mcp/transport/stdio.go"
+          ]
+        },
+        {
+          "task_description": "Add integration tests for authentication",
+          "task_type": "test",
+          "strategy": "dependency",
+          "token_budget": 8000,
+          "selected_files": 3,
+          "selected_tokens": 4676,
+          "token_reduction": 0.9747823929761738,
+          "relevance_score": 0.39049228147913717,
+          "selection_time": 218006,
+          "top_files": [
+            "../../internal/context/analyzer_test.go",
+            "../../cmd/mcp-server/main.go",
+            "../../internal/mcp/transport/stdio.go"
+          ]
+        },
+        {
+          "task_description": "Add integration tests for authentication",
+          "task_type": "test",
+          "strategy": "freshness",
+          "token_budget": 8000,
+          "selected_files": 1,
+          "selected_tokens": 2215,
+          "token_reduction": 0.9880545338841371,
+          "relevance_score": 0.6884018428798626,
+          "selection_time": 462981,
+          "top_files": [
+            "../../cmd/mcp-server/main.go"
+          ]
+        },
+        {
+          "task_description": "Add integration tests for authentication",
+          "task_type": "test",
+          "strategy": "compactness",
+          "token_budget": 8000,
+          "selected_files": 16,
+          "selected_tokens": 7511,
+          "token_reduction": 0.9594932749452612,
+          "relevance_score": 2.3120238894873864,
+          "selection_time": 186767,
+          "top_files": [
+            "../../internal/container/session.go",
+            "../../mcp-config.json",
+            "../../cmd/teeny-orb/main.go",
+            "../../.claude/settings.local.json",
+            "../../internal/cli/commands/review.go"
+          ]
+        },
+        {
+          "task_description": "Add integration tests for authentication",
+          "task_type": "test",
+          "strategy": "balanced",
+          "token_budget": 8000,
+          "selected_files": 4,
+          "selected_tokens": 6386,
+          "token_reduction": 0.9655603852749884,
+          "relevance_score": 0.4623271592016618,
+          "selection_time": 207659,
+          "top_files": [
+            "../../internal/context/analyzer_test.go",
+            "../../internal/mcp/transport/stdio.go",
+            "../../cmd/mcp-server/main.go",
+            "../../cmd/mcp-http-server/main.go"
+          ]
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "best_overall_strategy": "freshness",
+    "worst_overall_strategy": "compactness",
+    "avg_token_reduction_by_strategy": {
+      "balanced": 0.9655603852749884,
+      "compactness": 0.9597656207867289,
+      "dependency": 0.9778563955432356,
+      "freshness": 0.9880545338841371,
+      "relevance": 0.9778563955432356
+    },
+    "avg_performance_by_task_type": {
+      "debug": 0.9760831814308674,
+      "feature": 0.9763010581040416,
+      "refactor": 0.970355829279605,
+      "test": 0.9725345960113468
+    },
+    "performance_gains": {
+      "best_vs_worst_reduction": 0.02828891309740822,
+      "balanced_vs_random": 0.47663218750337066,
+      "dependency_strategy_boost": 0,
+      "relevance_accuracy": 0.9880545338841371
+    }
+  },
+  "conclusions": [
+    "Best overall strategy: 'freshness' with 98.8% average token reduction",
+    "feature tasks achieve 97.6% token reduction - excellent optimization",
+    "debug tasks achieve 97.6% token reduction - excellent optimization",
+    "refactor tasks achieve 97.0% token reduction - excellent optimization",
+    "test tasks achieve 97.3% token reduction - excellent optimization",
+    "Smart context selection successfully implemented with 5 distinct strategies"
+  ]
+}

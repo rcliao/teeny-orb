@@ -3,7 +3,9 @@ package context
 import (
 	"context"
 	"fmt"
+	"math"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -162,11 +164,6 @@ type ContextCache interface {
 	Clear() error
 }
 
-// ContextCompressor provides context compression capabilities
-type ContextCompressor interface {
-	Compress(ctx context.Context, selection *SelectedContext, strategy CompressionStrategy) (*CompressedContext, error)
-	EstimateCompression(selection *SelectedContext, strategy CompressionStrategy) (float64, error)
-}
 
 // NewDefaultOptimizer creates a new default context optimizer
 func NewDefaultOptimizer(analyzer ContextAnalyzer, cache ContextCache, compressor ContextCompressor, config *OptimizerConfig) *DefaultOptimizer {
@@ -329,40 +326,301 @@ func (o *DefaultOptimizer) getDefaultConstraints() *ContextConstraints {
 }
 
 func (o *DefaultOptimizer) selectFilesByStrategy(project *ProjectContext, task *Task, constraints *ContextConstraints) ([]ContextFile, error) {
-	// TODO: Implement sophisticated file selection logic
-	// For now, return a basic selection
+	switch constraints.Strategy {
+	case StrategyRelevance:
+		return o.selectByRelevance(project, task, constraints)
+	case StrategyDependency:
+		return o.selectByDependency(project, task, constraints)
+	case StrategyFreshness:
+		return o.selectByFreshness(project, task, constraints)
+	case StrategyCompactness:
+		return o.selectByCompactness(project, task, constraints)
+	case StrategyBalanced:
+		return o.selectByBalanced(project, task, constraints)
+	default:
+		return o.selectByBalanced(project, task, constraints)
+	}
+}
+
+// selectByRelevance prioritizes files by semantic relevance to the task
+func (o *DefaultOptimizer) selectByRelevance(project *ProjectContext, task *Task, constraints *ContextConstraints) ([]ContextFile, error) {
 	contextFiles := []ContextFile{}
 	
-	// Score all files
+	// Score all files and filter by minimum threshold
 	for _, file := range project.Files {
-		score := o.analyzer.ScoreFileRelevance(&file, task.Type, task.Description)
-		if score >= constraints.MinRelevanceScore {
-			contextFiles = append(contextFiles, ContextFile{
-				FileInfo:        &file,
-				RelevanceScore:  score,
-				InclusionReason: "relevance_threshold",
-				Priority:        1,
-			})
+		if o.shouldIncludeFile(&file, task, constraints) {
+			score := o.analyzer.ScoreFileRelevance(&file, task.Type, task.Description)
+			if score >= constraints.MinRelevanceScore {
+				contextFiles = append(contextFiles, ContextFile{
+					FileInfo:        &file,
+					RelevanceScore:  score,
+					InclusionReason: "relevance_score",
+					Priority:        1,
+				})
+			}
 		}
 	}
 	
-	// Sort by relevance score
+	// Sort by relevance score (highest first)
 	sort.Slice(contextFiles, func(i, j int) bool {
 		return contextFiles[i].RelevanceScore > contextFiles[j].RelevanceScore
 	})
 	
-	// Apply token budget constraint
-	totalTokens := 0
-	selectedFiles := []ContextFile{}
-	for _, file := range contextFiles {
-		if totalTokens+file.FileInfo.TokenCount <= constraints.MaxTokens && len(selectedFiles) < constraints.MaxFiles {
-			selectedFiles = append(selectedFiles, file)
-			totalTokens += file.FileInfo.TokenCount
+	return o.applyTokenBudget(contextFiles, constraints), nil
+}
+
+// selectByDependency prioritizes files based on dependency relationships
+func (o *DefaultOptimizer) selectByDependency(project *ProjectContext, task *Task, constraints *ContextConstraints) ([]ContextFile, error) {
+	contextFiles := []ContextFile{}
+	
+	// Score files by dependency centrality and relevance
+	for _, file := range project.Files {
+		if o.shouldIncludeFile(&file, task, constraints) {
+			baseScore := o.analyzer.ScoreFileRelevance(&file, task.Type, task.Description)
+			
+			// Boost score based on dependency centrality
+			var centralityBoost float64 = 0.0
+			if project.DependencyGraph != nil {
+				centralityBoost = o.calculateDependencyCentrality(project.DependencyGraph, file.Path)
+			}
+			
+			// Combine relevance and centrality (70% relevance, 30% centrality)
+			finalScore := baseScore*0.7 + centralityBoost*0.3
+			
+			if finalScore >= constraints.MinRelevanceScore {
+				contextFiles = append(contextFiles, ContextFile{
+					FileInfo:        &file,
+					RelevanceScore:  finalScore,
+					InclusionReason: "dependency_centrality",
+					Priority:        1,
+				})
+			}
 		}
 	}
 	
-	return selectedFiles, nil
+	// Sort by combined score
+	sort.Slice(contextFiles, func(i, j int) bool {
+		return contextFiles[i].RelevanceScore > contextFiles[j].RelevanceScore
+	})
+	
+	return o.applyTokenBudget(contextFiles, constraints), nil
 }
+
+// selectByFreshness prioritizes recently modified files
+func (o *DefaultOptimizer) selectByFreshness(project *ProjectContext, task *Task, constraints *ContextConstraints) ([]ContextFile, error) {
+	contextFiles := []ContextFile{}
+	
+	for _, file := range project.Files {
+		if o.shouldIncludeFile(&file, task, constraints) {
+			baseScore := o.analyzer.ScoreFileRelevance(&file, task.Type, task.Description)
+			
+			// Apply freshness bias
+			freshnessScore := o.calculateFreshnessScore(file.LastModified)
+			finalScore := baseScore*(1-constraints.FreshnessBias) + freshnessScore*constraints.FreshnessBias
+			
+			if finalScore >= constraints.MinRelevanceScore {
+				contextFiles = append(contextFiles, ContextFile{
+					FileInfo:        &file,
+					RelevanceScore:  finalScore,
+					InclusionReason: "freshness_bias",
+					Priority:        1,
+				})
+			}
+		}
+	}
+	
+	// Sort by combined score
+	sort.Slice(contextFiles, func(i, j int) bool {
+		return contextFiles[i].RelevanceScore > contextFiles[j].RelevanceScore
+	})
+	
+	return o.applyTokenBudget(contextFiles, constraints), nil
+}
+
+// selectByCompactness prioritizes information density (tokens per relevance)
+func (o *DefaultOptimizer) selectByCompactness(project *ProjectContext, task *Task, constraints *ContextConstraints) ([]ContextFile, error) {
+	contextFiles := []ContextFile{}
+	
+	for _, file := range project.Files {
+		if o.shouldIncludeFile(&file, task, constraints) {
+			relevanceScore := o.analyzer.ScoreFileRelevance(&file, task.Type, task.Description)
+			
+			if relevanceScore >= constraints.MinRelevanceScore {
+				// Calculate compactness: relevance per token
+				var compactness float64
+				if file.TokenCount > 0 {
+					compactness = relevanceScore / float64(file.TokenCount) * 1000 // Scale up for readability
+				}
+				
+				contextFiles = append(contextFiles, ContextFile{
+					FileInfo:        &file,
+					RelevanceScore:  compactness,
+					InclusionReason: "information_density",
+					Priority:        1,
+				})
+			}
+		}
+	}
+	
+	// Sort by compactness (highest first)
+	sort.Slice(contextFiles, func(i, j int) bool {
+		return contextFiles[i].RelevanceScore > contextFiles[j].RelevanceScore
+	})
+	
+	return o.applyTokenBudget(contextFiles, constraints), nil
+}
+
+// selectByBalanced uses a balanced approach combining multiple factors
+func (o *DefaultOptimizer) selectByBalanced(project *ProjectContext, task *Task, constraints *ContextConstraints) ([]ContextFile, error) {
+	contextFiles := []ContextFile{}
+	
+	for _, file := range project.Files {
+		if o.shouldIncludeFile(&file, task, constraints) {
+			// Base relevance score
+			relevanceScore := o.analyzer.ScoreFileRelevance(&file, task.Type, task.Description)
+			
+			// Dependency centrality boost
+			var centralityBoost float64 = 0.0
+			if project.DependencyGraph != nil {
+				centralityBoost = o.calculateDependencyCentrality(project.DependencyGraph, file.Path)
+			}
+			
+			// Freshness boost
+			freshnessScore := o.calculateFreshnessScore(file.LastModified)
+			
+			// Size penalty for very large files
+			var sizePenalty float64 = 1.0
+			if file.TokenCount > 2000 {
+				sizePenalty = 2000.0 / float64(file.TokenCount)
+			}
+			
+			// Balanced combination:
+			// 50% relevance, 20% centrality, 15% freshness, 15% size efficiency
+			balancedScore := relevanceScore*0.5 + 
+				centralityBoost*0.2 + 
+				freshnessScore*constraints.FreshnessBias*0.15 +
+				sizePenalty*0.15
+			
+			if balancedScore >= constraints.MinRelevanceScore {
+				contextFiles = append(contextFiles, ContextFile{
+					FileInfo:        &file,
+					RelevanceScore:  balancedScore,
+					InclusionReason: "balanced_strategy",
+					Priority:        1,
+				})
+			}
+		}
+	}
+	
+	// Sort by balanced score
+	sort.Slice(contextFiles, func(i, j int) bool {
+		return contextFiles[i].RelevanceScore > contextFiles[j].RelevanceScore
+	})
+	
+	return o.applyTokenBudget(contextFiles, constraints), nil
+}
+
+// shouldIncludeFile checks if a file should be considered based on constraints
+func (o *DefaultOptimizer) shouldIncludeFile(file *FileInfo, task *Task, constraints *ContextConstraints) bool {
+	// Check file type preferences
+	if len(constraints.PreferredTypes) > 0 {
+		found := false
+		for _, preferredType := range constraints.PreferredTypes {
+			if file.FileType == preferredType {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	
+	// Check excluded patterns
+	for _, pattern := range constraints.ExcludedPatterns {
+		if strings.Contains(file.Path, pattern) {
+			return false
+		}
+	}
+	
+	// Check test file inclusion
+	if !constraints.IncludeTests && file.FileType == "test" {
+		return false
+	}
+	
+	// Check documentation inclusion
+	if !constraints.IncludeDocs && file.FileType == "documentation" {
+		return false
+	}
+	
+	return true
+}
+
+// applyTokenBudget applies token budget constraints to file selection
+func (o *DefaultOptimizer) applyTokenBudget(contextFiles []ContextFile, constraints *ContextConstraints) []ContextFile {
+	selectedFiles := []ContextFile{}
+	totalTokens := 0
+	
+	for _, file := range contextFiles {
+		if totalTokens+file.FileInfo.TokenCount <= constraints.MaxTokens && 
+		   len(selectedFiles) < constraints.MaxFiles {
+			selectedFiles = append(selectedFiles, file)
+			totalTokens += file.FileInfo.TokenCount
+		} else {
+			break
+		}
+	}
+	
+	return selectedFiles
+}
+
+// calculateDependencyCentrality calculates dependency centrality for a file
+func (o *DefaultOptimizer) calculateDependencyCentrality(graph *DependencyGraph, filePath string) float64 {
+	// Use relative path for lookup
+	relPath := filePath
+	if strings.HasPrefix(filePath, "/") {
+		// Strip absolute path if needed
+		parts := strings.Split(filePath, "/")
+		if len(parts) > 2 {
+			relPath = strings.Join(parts[len(parts)-2:], "/")
+		}
+	}
+	
+	node, exists := graph.Nodes[relPath]
+	if !exists {
+		return 0.0
+	}
+	
+	totalNodes := len(graph.Nodes)
+	if totalNodes <= 1 {
+		return 0.5
+	}
+	
+	// Calculate centrality based on incoming and outgoing connections
+	inDegree := float64(len(node.Dependents))
+	outDegree := float64(len(node.Dependencies))
+	
+	// Files that many others depend on are more central
+	centrality := (inDegree*2 + outDegree) / float64(3*(totalNodes-1))
+	
+	return min(1.0, centrality)
+}
+
+// calculateFreshnessScore calculates freshness score based on modification time
+func (o *DefaultOptimizer) calculateFreshnessScore(lastModified time.Time) float64 {
+	age := time.Since(lastModified)
+	
+	// Files modified within 24 hours get full score
+	if age < 24*time.Hour {
+		return 1.0
+	}
+	
+	// Exponential decay with 1 week half-life
+	halfLife := 7 * 24 * time.Hour
+	return math.Exp(-0.693 * float64(age) / float64(halfLife))
+}
+
+// Note: min function is defined in dependency.go
 
 func (o *DefaultOptimizer) calculateSelectionScore(files []ContextFile, task *Task) float64 {
 	if len(files) == 0 {

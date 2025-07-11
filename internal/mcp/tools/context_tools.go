@@ -275,25 +275,24 @@ func (h *ContextOptimizationHandler) Handle(ctx context.Context, arguments map[s
 		taskTypeStr = tt
 	}
 
-	// Parse but don't use these parameters yet (will be used in Week 6)
-	// includeTests := false
-	// if it, ok := arguments["include_tests"]; ok {
-	// 	if itBool, ok := it.(bool); ok {
-	// 		includeTests = itBool
-	// 	}
-	// }
+	includeTests := false
+	if it, ok := arguments["include_tests"]; ok {
+		if itBool, ok := it.(bool); ok {
+			includeTests = itBool
+		}
+	}
 
-	// includeDocs := false
-	// if id, ok := arguments["include_docs"]; ok {
-	// 	if idBool, ok := id.(bool); ok {
-	// 		includeDocs = idBool
-	// 	}
-	// }
+	includeDocs := false
+	if id, ok := arguments["include_docs"]; ok {
+		if idBool, ok := id.(bool); ok {
+			includeDocs = idBool
+		}
+	}
 
-	// strategy := "balanced"
-	// if s, ok := arguments["strategy"].(string); ok {
-	// 	strategy = s
-	// }
+	strategy := "balanced"
+	if s, ok := arguments["strategy"].(string); ok {
+		strategy = s
+	}
 
 	// Make path absolute
 	absPath, err := filepath.Abs(projectPath)
@@ -327,8 +326,21 @@ func (h *ContextOptimizationHandler) Handle(ctx context.Context, arguments map[s
 		Scope:       contextpkg.ScopeProject,
 	}
 
+	// Create constraints
+	constraints := &contextpkg.ContextConstraints{
+		MaxTokens:         tokenBudget,
+		MaxFiles:          50,
+		MinRelevanceScore: 0.1,
+		PreferredTypes:    []string{"source", "configuration"},
+		IncludeTests:      includeTests,
+		IncludeDocs:       includeDocs,
+		FreshnessBias:     0.2,
+		DependencyDepth:   2,
+		Strategy:          contextpkg.SelectionStrategy(strategy),
+	}
+
 	// Optimize context
-	selectedContext, err := h.optimizer.OptimizeForTokenBudget(ctx, projectContext, tokenBudget, task)
+	selectedContext, err := h.optimizer.SelectOptimalContext(ctx, projectContext, task, constraints)
 	if err != nil {
 		return &mcp.CallToolResponse{
 			Content: []mcp.Content{{
